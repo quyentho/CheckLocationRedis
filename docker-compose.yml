@@ -1,0 +1,14 @@
+version: "3.9"
+services:
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - 6379:6379
+  redis_ui:
+    image: redislabs/redisinsight
+    depends_on:
+      - redis
+    container_name: redis_ui
+    ports:
+      - 8001:8001
