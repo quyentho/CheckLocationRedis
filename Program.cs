@@ -11,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSpaStaticFiles(config => config.RootPath = "/app/wwwroot");
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(opt =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection"))
 );
@@ -27,8 +30,11 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+// needed to serve static file
+app.UseSpaStaticFiles(new StaticFileOptions()
+{
+    RequestPath = "/wwwroot"
+});
 
 app.MapGet("/api", () => "Hello World");
 app.MapPost("/api/upload", async (HttpRequest request,
@@ -82,5 +88,6 @@ app.MapPost("/api/check-locations", async (ICheckLocationServices checkLocationS
     return Results.Ok(checkResults);
 });
 
+app.MapFallbackToFile("index.html");
 app.Run();
 

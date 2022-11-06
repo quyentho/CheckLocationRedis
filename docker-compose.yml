@@ -7,6 +7,8 @@ services:
       - 6379:6379
     volumes:
       - ./redis_data:/data
+    restart: always
+
   redis_ui:
     image: redislabs/redisinsight
     depends_on:
@@ -14,3 +16,24 @@ services:
     container_name: redis_ui
     ports:
       - 8001:8001
+
+  proxy:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - 8080:80
+    depends_on:
+      - redis
+      - web_check_locations
+    volumes:
+      - ./nginx.development.conf:/etc/nginx/nginx.conf:ro
+    restart: always
+
+  web_check_locations:
+    build: .
+    depends_on:
+      - redis
+    container_name: web_check_locations
+    ports:
+      - 5000:5000
+    restart: always

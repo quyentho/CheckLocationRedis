@@ -232,3 +232,5 @@ _Pvt_Extensions
 .fake/
 .vscode/
 redis_data/
+docker-compose.production.yml
+nginx.production.conf
