@@ -11,6 +11,6 @@ public class CheckLocationsResponse
         Address = address;
     }
 
-    public bool IsValid { get; set; } = false;
-    public Location? ValidLocation { get; set; }
+    public bool IsDeliverable { get; set; } = false;
+    public List<Location>? ValidLocations { get; set; }
 }

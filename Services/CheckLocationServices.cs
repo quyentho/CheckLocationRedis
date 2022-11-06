@@ -20,16 +20,21 @@ public class CheckLocationServices : ICheckLocationServices
         {
             var checkResult = new CheckLocationsResponse(address);
 
-            // this is just possible city because area and city name maybe duplicate.
+            // this is just possible cities because area and city name maybe duplicate.
             var possibleCitiesInAddress = cities.Where(city => address.Contains(city)).ToArray();
             foreach (var possibleCity in possibleCitiesInAddress)
             {
                 var areas = await _repository.GetAreasFromCityAsync(possibleCity);
-                var foundArea = areas.Where(a => address.Contains(a)).FirstOrDefault();
-                if (foundArea != null)
+
+                // find all matches instead of 1, because:
+                // eg: Correct Area: "Al Faiha" and "Al Faiha something"
+                // address contains "Al Faiha something else" which will matches with "Al Faiha" 
+                // but may not what we want.
+                var foundAreas = areas.Where(a => address.Contains(a));
+                if (foundAreas.Any())
                 {
-                    checkResult.IsValid = true;
-                    checkResult.ValidLocation = new Location(possibleCity, foundArea);
+                    checkResult.IsDeliverable = true;
+                    checkResult.ValidLocations = foundAreas.Select(area => new Location(possibleCity, area)).ToList();
                     break;
                 }
             }
