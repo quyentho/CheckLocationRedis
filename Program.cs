@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using CheckLocations.Data;
+using CheckLocations.Dtos;
 using CheckLocations.Models;
 using CheckLocations.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,7 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(opt =>
 );
 builder.Services.AddScoped<ICsvServices, CsvServices>();
 builder.Services.AddScoped<ILocationRepository, RedisLocationRepository>();
+builder.Services.AddScoped<ICheckLocationServices, CheckLocationServices>();
 
 
 var app = builder.Build();
@@ -55,7 +57,9 @@ app.MapPost("/api/upload", async (HttpRequest request,
     List<Task> setLocationTasks = new List<Task>();
     foreach (var location in locations)
     {
-        setLocationTasks.Add(repository.SetLocationAsync(location.City, location.Area));
+        location.City = location.City.ToLower();
+        location.Area = location.Area.ToLower();
+        setLocationTasks.Add(repository.SetLocationAsync(location));
     }
 
     await Task.WhenAll(setLocationTasks);
@@ -65,7 +69,18 @@ app.MapPost("/api/upload", async (HttpRequest request,
 .Accepts<IFormFile>("multipart/form-data")
 .Produces(200);
 
-app.MapFallbackToFile("index.html"); ;
+app.MapPost("/api/check-locations", async (ICheckLocationServices checkLocationServices, CheckLocationsRequest request) =>
+{
+    if (request.Addresses is null || request.Addresses.Length == 0)
+    {
+        return Results.BadRequest("No location to check");
+    }
+
+    List<CheckLocationsResponse> checkResults = await checkLocationServices
+                            .CheckLocationsAsync(request.Addresses.Select(addr => addr.ToLower()).ToArray());
+
+    return Results.Ok(checkResults);
+});
 
 app.Run();
 

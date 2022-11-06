@@ -3,6 +3,11 @@ using CheckLocations.Models;
 namespace CheckLocations.Data;
 public interface ILocationRepository
 {
-    Task SetLocationAsync(string city, string area);
-    Task<List<Location>?> GetLocationsByCity(string city);
+    Task SetLocationAsync(Location location);
+
+    Task<string[]> GetAllCitiesAsync();
+
+    Task<string[]> GetAreasFromCityAsync(string city);
+
+    // Task<bool> CityExists(string city);
 }
